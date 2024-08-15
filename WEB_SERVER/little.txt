@@ -1,0 +1,141 @@
++ Khởi Tạo LittleFS : 
+#include <LittleFS.h>
+
+void setup() {
+  Serial.begin(115200);
+
+  // Khởi tạo LittleFS
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS không khởi tạo được!");
+    return;
+  }
+  Serial.println("LittleFS khởi tạo thành công.");
+}
+
+void loop() {
+  // Không làm gì trong loop
+}
+
+
++ Tạo và ghi nội dung :
+void setup() {
+  Serial.begin(115200);
+
+  // Khởi tạo LittleFS
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS không khởi tạo được!");
+    return;
+  }
+  Serial.println("LittleFS khởi tạo thành công.");
+
+  // Tạo và ghi vào file
+  File file = LittleFS.open("/test_example.txt", "w");
+  if (file) {
+    file.println("Hello, LittleFS!");
+    file.close();
+    Serial.println("Đã ghi vào file test_example.txt.");
+  } else {
+    Serial.println("Không thể tạo hoặc ghi vào file test_example.txt.");
+  }
+}
+
++Đọc Từ File :
+void readFile(const char* path) {
+  Serial.print("Đọc file: ");
+  Serial.println(path);
+  
+  File file = LittleFS.open(path, "r");
+  if (!file) {
+    Serial.println("Không thể mở file.");
+    return;
+  }
+  
+  while (file.available()) {
+    Serial.write(file.read());
+  }
+  file.close();
+  Serial.println(); // Để phân cách các file
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Khởi tạo LittleFS
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS không khởi tạo được!");
+    return;
+  }
+  Serial.println("LittleFS khởi tạo thành công.");
+
+  // Đọc các file
+  readFile("/test_example.txt");
+}
+
++ Xoá file :
+void setup() {
+  Serial.begin(115200);
+
+  // Khởi tạo hệ thống file LittleFS
+  if (!LittleFS.begin()) {
+    Serial.println("Khởi tạo LittleFS thất bại!");
+    return;
+  }
+
+  Serial.println("LittleFS khởi tạo thành công.");
+
+  // Tên file bạn muốn xóa
+  String filename = "/test.txt";
+
+  // Kiểm tra xem file có tồn tại không trước khi xóa
+  if (LittleFS.exists(filename)) {
+    // Xóa file
+    if (LittleFS.remove(filename)) {
+      Serial.println("Xóa file thành công.");
+    } else {
+      Serial.println("Xóa file không thành công.");
+    }
+  } else {
+    Serial.println("File không tồn tại.");
+  }
+}
+
++Liệt Kê Các File và Thư Mục :
+
+void listFiles(String dir, int numTabs) {
+  File root = LittleFS.open(dir);
+  if (!root) {
+    Serial.println("Không thể mở thư mục.");
+    return;
+  }
+
+  File file = root.openNextFile();
+  while (file) {
+    for (int i = 0; i < numTabs; i++) {
+      Serial.print('\t');
+    }
+    Serial.print(file.name());
+    if (file.isDirectory()) {
+      Serial.println("/");
+      listFiles(file.name(), numTabs + 1);
+    } else {
+      Serial.print("\t");
+      Serial.println(file.size());
+    }
+    file = root.openNextFile();
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // Khởi tạo LittleFS
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS không khởi tạo được!");
+    return;
+  }
+  Serial.println("LittleFS khởi tạo thành công.");
+
+  // Liệt kê các file và thư mục trong LittleFS
+  listFiles("/", 0);
+}
+

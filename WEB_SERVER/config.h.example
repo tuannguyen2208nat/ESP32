@@ -1,0 +1,13 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+const char *ssid = "";
+const char *password = "";
+
+IPAddress local_IP(, , , ); // Địa chỉ IP tĩnh
+IPAddress gateway(, , , );    // Gateway của router
+IPAddress subnet(, , , );   // Subnet mask
+
+const uint16_t httpPort = ;
+
+#endif

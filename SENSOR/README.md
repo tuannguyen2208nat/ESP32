@@ -1,0 +1,1 @@
+Here is the file containing all the usage methods of the ESP32 sensor.
