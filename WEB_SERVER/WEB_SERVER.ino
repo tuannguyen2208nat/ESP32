@@ -63,10 +63,10 @@ void setup()
         Serial.println("An Error has occurred while mounting LittleFS");
         return;
     }
-    if (!WiFi.config(local_IP, gateway, subnet))
-    {
-        Serial.println("STA Failed to configure");
-    }
+    // if (!WiFi.config(local_IP, gateway, subnet))
+    // {
+    //     Serial.println("STA Failed to configure");
+    // }
 
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED)

@@ -7,8 +7,14 @@ function onLoad(event) {
     initWebSocket();
 }
 
-function toggleButton(index) {
-    websocket.send("toggle" + index);
+function toggleButton(relay_id) {
+    var state = document.getElementById("state" + index).innerText;
+    console.log("Current state of Relay " + index + ": " + currentState);
+    const jsonData = JSON.stringify({
+        relay_id: relay_id,
+        state: state
+    });
+    websocket.send(jsonData);
 }
 
 function onOpen(event) {
