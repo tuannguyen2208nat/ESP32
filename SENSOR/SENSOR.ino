@@ -15,6 +15,7 @@ int sensorPin = D9;
 
 TinyGPSPlus gps;
 SoftwareSerial ss(6, 7); // TX,RX
+HardwareSerial RS485Serial(1);
 
 void TaskFS(void *pvParameters); // Flame sensor
 void TaskBM(void *pvParameters); // Buzzer module
@@ -33,6 +34,7 @@ void TaskRelay(void *pvParameters);
 void TaskLight(void *pvParameters);
 void TaskLedRGB(void *pvParameters);
 void TaskTemperatureHumidity(void *pvParameters);
+void TaskTemperatureHumidity_ES35(void *pvParameters);
 
 void setup()
 {
@@ -57,6 +59,7 @@ void setup()
   xTaskCreate(TaskLight, "TaskLight", 2048, NULL, 2, NULL);
   xTaskCreate(TaskLedRGB, "TaskLedRGB", 2048, NULL, 2, NULL);
   xTaskCreate(TaskTemperatureHumidity, "TaskTemperatureHumidity", 2048, NULL, 2, NULL);
+   xTaskCreate(TaskTemperatureHumidity_ES35, "TaskTemperatureHumidity_ES35", 2048, NULL, 2, NULL);
 
   Serial.println("Start");
 }
@@ -323,6 +326,54 @@ void TaskTemperatureHumidity(void *pvParameters)
   {
     dht20.read();
     Serial.println("Temperature : " + String(dht20.getTemperature()) + " - " + "Humidity : " + String(dht20.getHumidity()));
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+  }
+}
+
+void sendRS485Command(byte *command, int commandSize, byte *response, int responseSize)
+{
+    RS485Serial.write(command, commandSize);
+    RS485Serial.flush();
+    delay(100); 
+    if (RS485Serial.available() >= responseSize)
+    {
+        RS485Serial.readBytes(response, responseSize); 
+    }
+}
+
+void ES35_sensor()
+{
+  byte temperatureRequest[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0x84, 0x0A};
+  byte humidityRequest[] = {0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0xD5, 0xCA};
+  byte response[7];
+    sendRS485Command(temperatureRequest, sizeof(temperatureRequest), response, sizeof(response));
+    if (response[1] == 0x03)  
+    {
+        int temperature = (response[3] << 8) | response[4]; 
+        float temperatureVal = temperature / 10.0; 
+        Serial.print("Temperature: ");
+        Serial.println(temperatureVal, 2);
+    }
+    delay(100);
+
+    memset(response, 0, sizeof(response)); 
+
+    sendRS485Command(humidityRequest, sizeof(humidityRequest), response, sizeof(response));
+    if (response[1] == 0x03) 
+    {
+        int humidity = (response[3] << 8) | response[4]; 
+        float humidityVal = humidity / 10.0; 
+        Serial.print("Humidity: ");
+        Serial.println(humidityVal, 2);
+    }
+}
+
+void TaskTemperatureHumidity_ES35(void *pvParameters)
+{
+  RS485Serial.begin(9600, SERIAL_8N1, 18, 17); 
+  while (1)
+  {
+    ES35_sensor();
     vTaskDelay(5000 / portTICK_PERIOD_MS);
   }
 }
